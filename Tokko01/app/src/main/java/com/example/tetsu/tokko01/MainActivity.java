@@ -19,60 +19,89 @@ public class MainActivity extends AppCompatActivity {
     private final int PICK_IMAGE = 1;
     private ProgressDialog detectionProgressDialog;
 
-    // Replace `<API endpoint>` with the Azure region associated with
-    // your subscription key. For example,
-    // apiEndpoint = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0"
+
+    //private final String apiEndpoint = "<endpoint>";
+    //↑の<endpoint>部分をWebAPIのURLに置き換える↓
     private final String apiEndpoint = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0";
 
-    // Replace `<Subscription Key>` with your subscription key.
-    // For example, subscriptionKey = "0123456789abcdef0123456789ABCDEF"
+    //private final String subscriptionKey = "<subscriptionKey>";
+    //↑の<subscriptionKey>をmicrosoftから指定されたkey(暗号みたいなもん)に置き換える↓
     private final String subscriptionKey = "5ad1ceacf92b4611bfebfb5a76738485";
 
     private final FaceServiceClient faceServiceClient =
             new FaceServiceRestClient(apiEndpoint, subscriptionKey);
 
     @Override
+    //onCreateは、画面表示時のメソッドみたいな。初期化とかリスナーの登録とか。
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button button1 = findViewById(R.id.button1);
-        button1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/*");
-                startActivityForResult(Intent.createChooser(
-                        intent, "Select Picture"), PICK_IMAGE);
-            }
-        });
 
-        detectionProgressDialog = new ProgressDialog(this);
+//        Button button1 = findViewById(R.id.button1);
+//        button1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//                intent.setType("image/*");
+//                startActivityForResult(Intent.createChooser(
+//                        intent, "Select Picture"), PICK_IMAGE);
+//            }
+//        });
+//
+          //プログレス（進捗）表示はいらんかな。
+//        detectionProgressDialog = new ProgressDialog(this);
+
     }
 
+    //カメラびゅう（つまり画面）クリック時の動作
+    //びゅうはapp/res/layout/activity_main.xmlで初期化、設定してるよ。
+//    public void onCameraImageClick(View view) {
+//        //スマホのキャプチャ(カメラ)機能(暗黙intent)
+//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        //intentをリクエストコード:200で呼び出し。200っていうのを下のonActibityResultでつかう。
+//        startActivityForResult(intent, 200);
+//    }
+
     @Override
+    //アクティビティからの応答をキャッチ
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK &&
-                data != null && data.getData() != null) {
-            Uri uri = data.getData();
-            try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(
-                        getContentResolver(), uri);
-                ImageView imageView = findViewById(R.id.imageView1);
-                imageView.setImageBitmap(bitmap);
 
-                // Comment out for tutorial
-                //detectAndFrame(bitmap);
-            } catch (IOException e) {
+        //マイクロソフトのテンプレ部分コメントアウト
+//        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK &&
+//                data != null && data.getData() != null) {
+//            Uri uri = data.getData();
+//            try {
+//                Bitmap bitmap = MediaStore.Images.Media.getBitmap(
+//                        getContentResolver(), uri);
+//                ImageView imageView = findViewById(R.id.imageView1);
+//                imageView.setImageBitmap(bitmap);
+//
+//                // Comment out for tutorial
+//                detectAndFrame(bitmap);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
+        //リクエストコード：200のとき！
+        if (requestCode == 200 && resultCode == RESULT_OK) {
+            try {
+                //キャプチャしたbitmap(画像)データをメソッドdetectAndFrameに渡す。
+                Bitmap bitmap = data.getParcelableExtra("data");
+                detectAndFrame(bitmap);
+            }catch (Exception e){
                 e.printStackTrace();
             }
         }
+
     }
 
-    // Detect faces by uploading a face image.
-// Frame faces after detection.
+
     private void detectAndFrame(final Bitmap imageBitmap) {
+        //streamは基礎知識なので調べといて。
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        //conpress→圧縮
         imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
         ByteArrayInputStream inputStream =
                 new ByteArrayInputStream(outputStream.toByteArray());
@@ -85,24 +114,31 @@ public class MainActivity extends AppCompatActivity {
                     protected Face[] doInBackground(InputStream... params) {
                         try {
                             publishProgress("Detecting...");
+                            //faceServiceClient→マイクロソフト様がおつくりになられたWebAPI職人クラス。
                             Face[] result = faceServiceClient.detect(
                                     params[0],
                                     true,         // returnFaceId
                                     false,        // returnFaceLandmarks
-                                    null          // returnFaceAttributes:
-                                /* new FaceServiceClient.FaceAttributeType[] {
-                                    FaceServiceClient.FaceAttributeType.Age,
-                                    FaceServiceClient.FaceAttributeType.Gender }
-                                */
+                                    //null          // returnFaceAttributes:
+                                    //顔の属性で受け取る項目を指定。
+                                 new FaceServiceClient.FaceAttributeType[] {
+                                        //FaceServiceClient.FaceAttributeType.Age,
+                                        //FaceServiceClient.FaceAttributeType.Gender,
+                                        FaceServiceClient.FaceAttributeType.Emotion,
+                                        FaceServiceClient.FaceAttributeType.Smile
+                                 }
+
                             );
-                            if (result == null){
-                                publishProgress(
-                                        "Detection Finished. Nothing detected");
-                                return null;
-                            }
-                            publishProgress(String.format(
-                                    "Detection Finished. %d face(s) detected",
-                                    result.length));
+                            //進捗報告はいらなそう。
+//                            if (result == null){
+//                                publishProgress(
+//                                        "Detection Finished. Nothing detected");
+//                                return null;
+//                            }
+//                            publishProgress(String.format(
+//                                    "Detection Finished. %d face(s) detected",
+//                                    result.length));
+
                             return result;
                         } catch (Exception e) {
                             exceptionMessage = String.format(
@@ -111,27 +147,36 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                    @Override
-                    protected void onPreExecute() {
-                        //TODO: show progress dialog
-                        detectionProgressDialog.show();
-                    }
-                    @Override
-                    protected void onProgressUpdate(String... progress) {
-                        //TODO: update progress
-                        detectionProgressDialog.setMessage(progress[0]);
-                    }
+//                    @Override
+//                    protected void onPreExecute() {
+//                        //TODO: show progress dialog
+//                        detectionProgressDialog.show();
+//                    }
+//                    @Override
+//                    protected void onProgressUpdate(String... progress) {
+//                        //TODO: update progress
+//                        detectionProgressDialog.setMessage(progress[0]);
+//                    }
                     @Override
                     protected void onPostExecute(Face[] result) {
                         //TODO: update face frames
-                        detectionProgressDialog.dismiss();
+                        //detectionProgressDialog.dismiss();
 
                         if(!exceptionMessage.equals("")){
-                            showError(exceptionMessage);
+                            //うーん。
+                            //showError(exceptionMessage);
                         }
                         if (result == null) return;
 
-                        ImageView imageView = findViewById(R.id.imageView1);
+                        for(Face face : result){
+                            if(face.faceAttributes.smile < 0.5){
+                                // 笑顔じゃないよ。
+                            }else{
+                                // 笑顔だよ。
+                            }
+                        }
+
+                        ImageView imageView = findViewById(R.id.ivCamera);
                         imageView.setImageBitmap(
                                 drawFaceRectanglesOnBitmap(imageBitmap, result));
                         imageBitmap.recycle();
@@ -141,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
         detectTask.execute(inputStream);
     }
 
+    //エラー表示的なメソッド。いるかなあ。
     private void showError(String message) {
         new AlertDialog.Builder(this)
                 .setTitle("Error")
@@ -151,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
                 .create().show();
     }
 
+    //画像の中の顔を四角で囲む。
     private static Bitmap drawFaceRectanglesOnBitmap(
             Bitmap originalBitmap, Face[] faces) {
         Bitmap bitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
