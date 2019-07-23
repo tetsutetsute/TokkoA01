@@ -175,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
                                     "Detection Finished. %d face(s) detected",
                                     result.length));
 
+
                             return result;
                         } catch (Exception e) {
                             exceptionMessage = String.format(
@@ -183,20 +184,20 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                    @Override
-                    protected void onPreExecute() {
-                        //TODO: show progress dialog
-                        detectionProgressDialog.show();
-                    }
-                    @Override
-                    protected void onProgressUpdate(String... progress) {
-                        //TODO: update progress
-                        detectionProgressDialog.setMessage(progress[0]);
-                    }
+//                    @Override
+//                    protected void onPreExecute() {
+//                        //TODO: show progress dialog
+//                        detectionProgressDialog.show();
+//                    }
+//                    @Override
+//                    protected void onProgressUpdate(String... progress) {
+//                        //TODO: update progress
+//                        detectionProgressDialog.setMessage(progress[0]);
+//                    }
                     @Override
                     protected void onPostExecute(Face[] result) {
                         //TODO: update face frames
-                        detectionProgressDialog.dismiss();
+                        //detectionProgressDialog.dismiss();
 
                         if(!exceptionMessage.equals("")){
                             //うーん。
