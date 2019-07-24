@@ -25,9 +25,8 @@ import com.microsoft.projectoxford.face.contract.*;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final int PICK_IMAGE = 1;
+    //進捗バー
     private ProgressDialog detectionProgressDialog;
-
 
     //private final String apiEndpoint = "WebAPIのURL";
     private final String apiEndpoint = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0";
@@ -62,8 +61,7 @@ public class MainActivity extends AppCompatActivity {
         initSoundPool();
     }
 
-    //カメラびゅう（つまり画面）クリック時の動作
-    //びゅうはapp/res/layout/activity_main.xmlで初期化、設定してるよ。
+    //カメラView（つまり画面）クリック時の動作（Viewの設定→app/res/layout/activity_main.xml）
     public void onCameraImageClick(View view) {
         //アプリからスマホへ、ストレージをいじる許可を確認して、ない場合は取得
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -129,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
                     String exceptionMessage = "";
 
                     @Override
+                    //本処理
                     protected Face[] doInBackground(InputStream... params) {
                         try {
                             publishProgress("AIが顔を見ています...");
@@ -144,38 +143,34 @@ public class MainActivity extends AppCompatActivity {
                                             FaceServiceClient.FaceAttributeType.Emotion,
                                             FaceServiceClient.FaceAttributeType.Smile
                                     }
-
                             );
                             //進捗報告
                             if (result == null){
-                                publishProgress(
-                                        "誰もいない。。");
+                                publishProgress("誰もいない。。");
                                 return null;
                             }
-                            publishProgress(String.format(
-                                    "%d人検知しました。 ",
-                                    result.length));
-
-
+                            publishProgress(String.format("%d人検知しました。 ", result.length));
                             return result;
                         } catch (Exception e) {
-                            exceptionMessage = String.format(
-                                    "検知に失敗しました: %s", e.getMessage());
+                            exceptionMessage = String.format("検知に失敗しました: %s", e.getMessage());
                             return null;
                         }
                     }
 
                     @Override
+                    //本処理の前に呼び出される
                     protected void onPreExecute() {
                         //プログレスダイアログ表示
                         detectionProgressDialog.show();
                     }
                     @Override
+                    //Progressが更新されるたびに呼び出される
                     protected void onProgressUpdate(String... progress) {
-                        //TODO: update progress
+                        //プログレスダイアログにメッセージをぽん
                         detectionProgressDialog.setMessage(progress[0]);
                     }
                     @Override
+                    //本処理が完了したとき呼び出される
                     protected void onPostExecute(Face[] result) {
 
                         //プログレスダイアログさようなら
