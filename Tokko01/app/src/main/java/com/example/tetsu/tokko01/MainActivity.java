@@ -187,22 +187,19 @@ public class MainActivity extends AppCompatActivity {
                             Double smilePoint = face.faceAttributes.smile;
 
                             //笑顔ポイントによって判定
-                            if(smilePoint < 0.2){
+                            if(smilePoint <= 0.2){
                                 playJudgeSound(false);
                                 showSmileComment("笑顔ってなんだっけ");
-                            }else if(0.2 <= smilePoint){
+                            }else if(smilePoint <= 0.4){
                                 playJudgeSound(false);
                                 showSmileComment("笑顔かなぁ……");
-                            }
-                            else if(0.4 <= smilePoint){
+                            }else if(smilePoint <= 0.6){
                                 playJudgeSound(false);
                                 showSmileComment("ちょっと笑顔");
-                            }
-                            else if(0.6 <= smilePoint){
+                            }else if(smilePoint <= 0.8){
                                 playJudgeSound(true);
                                 showSmileComment("うん、笑顔");
-                            }
-                            else if(0.8 <= smilePoint){
+                            }else{
                                 playJudgeSound(true);
                                 showSmileComment("誰もが認める笑顔");
                             }
